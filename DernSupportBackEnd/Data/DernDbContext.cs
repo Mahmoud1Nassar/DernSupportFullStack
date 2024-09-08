@@ -64,7 +64,7 @@ namespace DernSupportBackEnd.Data
                 SecurityStamp = Guid.NewGuid().ToString("D")
             };
 
-            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@123");
+            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@1235678");
 
             modelBuilder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -84,20 +84,29 @@ namespace DernSupportBackEnd.Data
                 .HasMany(sr => sr.Appointments)
                 .WithOne(a => a.SupportRequest)
                 .HasForeignKey(a => a.SupportRequestId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade delete appointments when SupportRequest is deleted
+                .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to prevent multiple cascade paths
 
             // Many-to-Many: SupportRequest <-> SparePart
             modelBuilder.Entity<SupportRequest>()
                 .HasMany(sr => sr.RequiredSpareParts)
                 .WithMany(sp => sp.SupportRequests)
-                .UsingEntity(j => j.ToTable("SupportRequestSpareParts")); // This creates a join table
+                .UsingEntity(j => j.ToTable("SupportRequestSpareParts"));
 
             // One-to-One: SupportRequest has one Quote
             modelBuilder.Entity<SupportRequest>()
                 .HasOne(sr => sr.Quote)
                 .WithOne(q => q.SupportRequest)
                 .HasForeignKey<Quote>(q => q.SupportRequestId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade delete quote when SupportRequest is deleted
+                .OnDelete(DeleteBehavior.Cascade); // This can remain Cascade, as long as there's no conflict with other relationships
+
+            // Specify precision for decimal properties
+            modelBuilder.Entity<Quote>()
+                .Property(q => q.TotalCost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SparePart>()
+                .Property(sp => sp.Cost)
+                .HasPrecision(18, 2);
         }
     }
 }
