@@ -1,0 +1,6 @@
+@DernSupportBackEnd_HostAddress = http://localhost:5298
+
+GET {{DernSupportBackEnd_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
