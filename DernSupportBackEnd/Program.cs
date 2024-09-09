@@ -8,6 +8,7 @@ using DernSupportBackEnd.Data;
 using DernSupportBackEnd.Models; 
 using DernSupportBackEnd.Repositories.Interfaces; 
 using DernSupportBackEnd.Repositories.Services;
+using DernSupportBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,7 @@ builder.Services.AddScoped<ISupportRequest, SupportRequestService>();
 builder.Services.AddScoped<IAppointment, AppointmentService>();
 builder.Services.AddScoped<ISparePart, SparePartService>();
 builder.Services.AddScoped<IQuote, QuoteService>();
+builder.Services.AddScoped<IAuth, AuthService>();
 
 // Add controllers
 builder.Services.AddControllers();

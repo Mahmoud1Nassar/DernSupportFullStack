@@ -22,27 +22,23 @@ namespace DernSupportBackEnd.Data
         {
             base.OnModelCreating(modelBuilder); // This is important to call Identity configurations
 
-            // Seed Roles: Admin, Customer, Technician
-            string adminRoleId = Guid.NewGuid().ToString();
-            string customerRoleId = Guid.NewGuid().ToString();
-            string technicianRoleId = Guid.NewGuid().ToString();
-
+            // Seed Identity Roles
             modelBuilder.Entity<IdentityRole>().HasData(
                 new IdentityRole
                 {
-                    Id = adminRoleId,
+                    Id = "1",
                     Name = "Admin",
                     NormalizedName = "ADMIN"
                 },
                 new IdentityRole
                 {
-                    Id = customerRoleId,
+                    Id = "2",
                     Name = "Customer",
                     NormalizedName = "CUSTOMER"
                 },
                 new IdentityRole
                 {
-                    Id = technicianRoleId,
+                    Id = "3",
                     Name = "Technician",
                     NormalizedName = "TECHNICIAN"
                 }
@@ -50,6 +46,7 @@ namespace DernSupportBackEnd.Data
 
             // Seed Admin User
             var adminId = Guid.NewGuid().ToString();
+            var adminRoleId = "1"; // Ensure this matches the ID in the role seeding above
             var passwordHasher = new PasswordHasher<ApplicationUser>();
 
             var adminUser = new ApplicationUser
@@ -84,7 +81,7 @@ namespace DernSupportBackEnd.Data
                 .HasMany(sr => sr.Appointments)
                 .WithOne(a => a.SupportRequest)
                 .HasForeignKey(a => a.SupportRequestId)
-                .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to prevent multiple cascade paths
+                .OnDelete(DeleteBehavior.Restrict); // Prevent multiple cascade paths
 
             // Many-to-Many: SupportRequest <-> SparePart
             modelBuilder.Entity<SupportRequest>()
@@ -97,7 +94,7 @@ namespace DernSupportBackEnd.Data
                 .HasOne(sr => sr.Quote)
                 .WithOne(q => q.SupportRequest)
                 .HasForeignKey<Quote>(q => q.SupportRequestId)
-                .OnDelete(DeleteBehavior.Cascade); // This can remain Cascade, as long as there's no conflict with other relationships
+                .OnDelete(DeleteBehavior.Cascade); // Cascade deletion is appropriate here
 
             // Specify precision for decimal properties
             modelBuilder.Entity<Quote>()
