@@ -1,13 +1,13 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 
 namespace DernSupportBackEnd.Repositories.Interfaces
 {
     public interface IAppointment
     {
-        Task<IEnumerable<Appointment>> GetAllAppointmentsAsync();
-        Task<Appointment> GetAppointmentByIdAsync(int id);
-        Task<Appointment> CreateAppointmentAsync(Appointment appointment);
-        Task<Appointment> UpdateAppointmentAsync(Appointment appointment);
+        Task<IEnumerable<AppointmentDTO>> GetAllAppointmentsAsync();
+        Task<AppointmentDTO> GetAppointmentByIdAsync(int id);
+        Task<AppointmentDTO> CreateAppointmentAsync(AppointmentDTO appointmentDTO);
+        Task<AppointmentDTO> UpdateAppointmentAsync(AppointmentDTO appointmentDTO);
         Task<bool> DeleteAppointmentAsync(int id);
     }
 }

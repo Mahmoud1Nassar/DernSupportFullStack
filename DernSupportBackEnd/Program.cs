@@ -115,13 +115,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication(); // Ensure this is before authorization
+app.UseCors("CorsPolicy");
+app.UseAuthentication(); 
 app.UseAuthorization();
-
 app.MapControllers();
-
-app.UseCors("CorsPolicy"); // Apply CORS if needed
-
-// Run the application
 app.Run();

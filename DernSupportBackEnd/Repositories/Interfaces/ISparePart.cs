@@ -1,13 +1,13 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 
 namespace DernSupportBackEnd.Repositories.Interfaces
 {
     public interface ISparePart
     {
-        Task<IEnumerable<SparePart>> GetAllSparePartsAsync();
-        Task<SparePart> GetSparePartByIdAsync(int id);
-        Task<SparePart> CreateSparePartAsync(SparePart sparePart);
-        Task<SparePart> UpdateSparePartAsync(SparePart sparePart);
+        Task<IEnumerable<SparePartDTO>> GetAllSparePartsAsync();
+        Task<SparePartDTO> GetSparePartByIdAsync(int id);
+        Task<SparePartDTO> CreateSparePartAsync(SparePartDTO sparePartDTO);
+        Task<SparePartDTO> UpdateSparePartAsync(SparePartDTO sparePartDTO);
         Task<bool> DeleteSparePartAsync(int id);
     }
 }

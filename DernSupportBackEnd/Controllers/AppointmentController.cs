@@ -1,12 +1,13 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 using DernSupportBackEnd.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-
 namespace DernSupportBackEnd.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,Technician,Customer")]
     public class AppointmentController : ControllerBase
     {
         private readonly IAppointment _appointmentService;
@@ -16,52 +17,38 @@ namespace DernSupportBackEnd.Controllers
             _appointmentService = appointmentService;
         }
 
-        // GET: api/appointment (Admin, Technician, and Customer can view appointments)
         [HttpGet]
-        [Authorize(Roles = "Admin,Technician,Customer")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IEnumerable<AppointmentDTO>> GetAllAppointmentsAsync()
         {
-            var appointments = await _appointmentService.GetAllAppointmentsAsync();
-            return Ok(appointments);
+            return await _appointmentService.GetAllAppointmentsAsync();
         }
 
-        // GET: api/appointment/{id} (Admin, Technician, and Customer can view a specific appointment)
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Technician,Customer")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int id)
         {
-            var appointment = await _appointmentService.GetAppointmentByIdAsync(id);
-            if (appointment == null) return NotFound();
-            return Ok(appointment);
+            return await _appointmentService.GetAppointmentByIdAsync(id);
         }
 
-        // POST: api/appointment (Only Admin can create appointments)
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(Appointment appointment)
+        [Authorize(Roles = "Admin,Customer")]
+        public async Task<AppointmentDTO> CreateAppointmentAsync(AppointmentDTO appointmentDTO)
         {
-            var createdAppointment = await _appointmentService.CreateAppointmentAsync(appointment);
-            return CreatedAtAction(nameof(GetById), new { id = createdAppointment.AppointmentId }, createdAppointment);
+            return await _appointmentService.CreateAppointmentAsync(appointmentDTO);
         }
 
-        // PUT: api/appointment/{id} (Admin and Technician can update appointments)
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Technician")]
-        public async Task<IActionResult> Update(int id, Appointment appointment)
+        public async Task<AppointmentDTO> UpdateAppointmentAsync(AppointmentDTO appointmentDTO)
         {
-            if (id != appointment.AppointmentId) return BadRequest();
-            var updatedAppointment = await _appointmentService.UpdateAppointmentAsync(appointment);
-            return Ok(updatedAppointment);
+         return await _appointmentService.UpdateAppointmentAsync(appointmentDTO);
         }
 
-        // DELETE: api/appointment/{id} (Only Admin can delete appointments)
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<bool> DeleteAppointmentAsync(int id)
         {
-            var result = await _appointmentService.DeleteAppointmentAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            return await _appointmentService.DeleteAppointmentAsync(id);
+           
         }
     }
 }

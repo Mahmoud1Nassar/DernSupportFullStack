@@ -1,4 +1,4 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 using DernSupportBackEnd.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,52 +16,35 @@ namespace DernSupportBackEnd.Controllers
             _supportRequestService = supportRequestService;
         }
 
-        // GET: api/supportrequest (Admin, Technician, and Customer can view support requests)
         [HttpGet]
-        [Authorize(Roles = "Admin,Technician,Customer")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IEnumerable<SupportRequestDTO>> GetAllSupportRequestsAsync()
         {
-            var supportRequests = await _supportRequestService.GetAllSupportRequestsAsync();
-            return Ok(supportRequests);
+            return await _supportRequestService.GetAllSupportRequestsAsync();
         }
 
-        // GET: api/supportrequest/{id} (Admin, Technician, and Customer can view a specific support request)
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Technician,Customer")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<SupportRequestDTO> GetSupportRequestByIdAsync(int id)
         {
-            var supportRequest = await _supportRequestService.GetSupportRequestByIdAsync(id);
-            if (supportRequest == null) return NotFound();
-            return Ok(supportRequest);
+            return await _supportRequestService.GetSupportRequestByIdAsync(id);
         }
 
-        // POST: api/supportrequest (Admin and Customer can create support requests)
         [HttpPost]
-        [Authorize(Roles = "Admin,Customer")]
-        public async Task<IActionResult> Create(SupportRequest supportRequest)
+        
+        public async Task<SupportRequestDTO> CreateSupportRequestAsync(SupportRequestDTO request)
         {
-            var createdSupportRequest = await _supportRequestService.CreateSupportRequestAsync(supportRequest);
-            return CreatedAtAction(nameof(GetById), new { id = createdSupportRequest.SupportRequestId }, createdSupportRequest);
+            return await _supportRequestService.CreateSupportRequestAsync(request);
         }
 
-        // PUT: api/supportrequest/{id} (Admin and Technician can update support requests)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Technician")]
-        public async Task<IActionResult> Update(int id, SupportRequest supportRequest)
+        public async Task<SupportRequestDTO> UpdateSupportRequestAsync(SupportRequestDTO request)
         {
-            if (id != supportRequest.SupportRequestId) return BadRequest();
-            var updatedRequest = await _supportRequestService.UpdateSupportRequestAsync(supportRequest);
-            return Ok(updatedRequest);
+            return await _supportRequestService.UpdateSupportRequestAsync(request);
         }
 
-        // DELETE: api/supportrequest/{id} (Only Admin can delete support requests)
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<bool> DeleteSupportRequestAsync(int id)
         {
-            var result = await _supportRequestService.DeleteSupportRequestAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+           return await _supportRequestService.DeleteSupportRequestAsync(id);
         }
     }
 }

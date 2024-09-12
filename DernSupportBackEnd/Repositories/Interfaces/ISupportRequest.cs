@@ -1,13 +1,13 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 
 namespace DernSupportBackEnd.Repositories.Interfaces
 {
     public interface ISupportRequest
     {
-        Task<IEnumerable<SupportRequest>> GetAllSupportRequestsAsync();
-        Task<SupportRequest> GetSupportRequestByIdAsync(int id);
-        Task<SupportRequest> CreateSupportRequestAsync(SupportRequest request);
-        Task<SupportRequest> UpdateSupportRequestAsync(SupportRequest request);
+        Task<IEnumerable<SupportRequestDTO>> GetAllSupportRequestsAsync();
+        Task<SupportRequestDTO> GetSupportRequestByIdAsync(int id);
+        Task<SupportRequestDTO> CreateSupportRequestAsync(SupportRequestDTO supportRequestDTO);
+        Task<SupportRequestDTO> UpdateSupportRequestAsync(SupportRequestDTO supportRequestDTO);
         Task<bool> DeleteSupportRequestAsync(int id);
     }
 }

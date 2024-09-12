@@ -1,13 +1,13 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 
 namespace DernSupportBackEnd.Repositories.Interfaces
 {
     public interface IQuote
     {
-        Task<IEnumerable<Quote>> GetAllQuotesAsync();
-        Task<Quote> GetQuoteByIdAsync(int id);
-        Task<Quote> CreateQuoteAsync(Quote quote);
-        Task<Quote> UpdateQuoteAsync(Quote quote);
+        Task<IEnumerable<QuoteDTO>> GetAllQuotesAsync();
+        Task<QuoteDTO> GetQuoteByIdAsync(int id);
+        Task<QuoteDTO> CreateQuoteAsync(QuoteDTO quoteDTO);
+        Task<QuoteDTO> UpdateQuoteAsync(QuoteDTO quoteDTO);
         Task<bool> DeleteQuoteAsync(int id);
     }
 }

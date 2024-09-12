@@ -1,21 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DernSupportBackEnd.Models
+public class Quote
 {
-    public class Quote
-    {
-        [Key]
-        public int QuoteId { get; set; }
+    [Key]
+    public int QuoteId { get; set; }
+    public decimal TotalCost { get; set; }
+    public string Description { get; set; }
 
-        [Required]
-        public decimal TotalCost { get; set; }
+    // Foreign key for SupportRequest
+    public int SupportRequestId { get; set; }
 
-        public string Description { get; set; }
-
-        // Foreign key for SupportRequest
-        [ForeignKey("SupportRequest")]
-        public int SupportRequestId { get; set; }
-        public SupportRequest SupportRequest { get; set; }
-    }
+    // Navigation property for SupportRequest
+    public SupportRequest SupportRequest { get; set; }
 }
