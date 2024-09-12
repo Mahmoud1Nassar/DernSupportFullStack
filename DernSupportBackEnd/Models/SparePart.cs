@@ -1,22 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DernSupportBackEnd.Models
+﻿public class SparePart
 {
-    public class SparePart
-    {
-        [Key]
-        public int SparePartId { get; set; }
+    public int SparePartId { get; set; }
+    public string Name { get; set; }
+    public int StockLevel { get; set; }
+    public decimal Cost { get; set; }
 
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public int StockLevel { get; set; }
-
-        [Required]
-        public decimal Cost { get; set; }
-
-        // Many-to-many relationship with SupportRequest
-        public ICollection<SupportRequest> SupportRequests { get; set; }
-    }
+    // Many-to-Many relationship with SupportRequests
+    public ICollection<SupportRequestSparePart> SupportRequestSpareParts { get; set; }
 }

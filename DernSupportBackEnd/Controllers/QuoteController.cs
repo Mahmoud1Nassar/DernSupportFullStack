@@ -1,4 +1,4 @@
-﻿using DernSupportBackEnd.Models;
+﻿using DernSupportBackEnd.Models.DTO;
 using DernSupportBackEnd.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ namespace DernSupportBackEnd.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Only Admin has access to quotes
+
     public class QuoteController : ControllerBase
     {
         private readonly IQuote _quoteService;
@@ -17,47 +17,37 @@ namespace DernSupportBackEnd.Controllers
             _quoteService = quoteService;
         }
 
-        // GET: api/quote (Only Admin can view quotes)
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IEnumerable<QuoteDTO>> GetAllQuotesAsync()
         {
-            var quotes = await _quoteService.GetAllQuotesAsync();
-            return Ok(quotes);
+            return await _quoteService.GetAllQuotesAsync();
         }
 
-        // GET: api/quote/{id} (Only Admin can view a specific quote)
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<QuoteDTO> GetQuoteByIdAsync(int id)
         {
-            var quote = await _quoteService.GetQuoteByIdAsync(id);
-            if (quote == null) return NotFound();
-            return Ok(quote);
+            return await _quoteService.GetQuoteByIdAsync(id);
         }
 
-        // POST: api/quote (Only Admin can create quotes)
         [HttpPost]
-        public async Task<IActionResult> Create(Quote quote)
+
+        public async Task<QuoteDTO> CreateQuoteAsync(QuoteDTO quoteDTO)
         {
-            var createdQuote = await _quoteService.CreateQuoteAsync(quote);
-            return CreatedAtAction(nameof(GetById), new { id = createdQuote.QuoteId }, createdQuote);
+            return await _quoteService.CreateQuoteAsync(quoteDTO);
         }
 
-        // PUT: api/quote/{id} (Only Admin can update quotes)
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Quote quote)
+
+        public async Task<QuoteDTO> UpdateQuoteAsync(QuoteDTO quoteDTO)
         {
-            if (id != quote.QuoteId) return BadRequest();
-            var updatedQuote = await _quoteService.UpdateQuoteAsync(quote);
-            return Ok(updatedQuote);
+            return await _quoteService.UpdateQuoteAsync(quoteDTO);
         }
 
-        // DELETE: api/quote/{id} (Only Admin can delete quotes)
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+
+        public async Task<bool> DeleteQuoteAsync(int id)
         {
-            var result = await _quoteService.DeleteQuoteAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            return await _quoteService.DeleteQuoteAsync(id);
         }
     }
 }

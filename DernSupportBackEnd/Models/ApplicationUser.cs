@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DernSupportBackEnd.Models;
+using Microsoft.AspNetCore.Identity;
 
-namespace DernSupportBackEnd.Models
+public class ApplicationUser : IdentityUser
 {
-    public class ApplicationUser : IdentityUser
-    {
-        public string FullName { get; set; }
-    }
+    public string FullName { get; set; }
+
+    // Navigation properties
+    public ICollection<Appointment> Appointments { get; set; }
+    public ICollection<SupportRequest> SupportRequests { get; set; }
 }

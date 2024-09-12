@@ -1,7 +1,7 @@
-﻿using DernSupportBackEnd.Data;
-using DernSupportBackEnd.Models;
-using DernSupportBackEnd.Repositories.Interfaces;
+﻿using DernSupportBackEnd.Repositories.Interfaces;
+using DernSupportBackEnd.Data;
 using Microsoft.EntityFrameworkCore;
+using DernSupportBackEnd.Models.DTO;
 
 namespace DernSupportBackEnd.Repositories.Services
 {
@@ -14,45 +14,88 @@ namespace DernSupportBackEnd.Repositories.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<SupportRequest>> GetAllSupportRequestsAsync()
+        public async Task<IEnumerable<SupportRequestDTO>> GetAllSupportRequestsAsync()
         {
-            return await _context.SupportRequests
-                .Include(sr => sr.Appointments)
-                .Include(sr => sr.RequiredSpareParts)
-                .Include(sr => sr.Quote)
-                .ToListAsync();
+            var supportRequests = await _context.SupportRequests
+                                                .Include(sr => sr.User) // Include the User data
+                                                .ToListAsync();
+
+            return supportRequests.Select(sr => new SupportRequestDTO
+            {
+                SupportRequestId = sr.SupportRequestId,
+                IssueType = sr.IssueType,
+                Description = sr.Description,
+                RequestDate = sr.RequestDate,
+                UserId = sr.UserId,
+                UserEmail = sr.User.Email // Include the user's email
+            }).ToList();
         }
 
-        public async Task<SupportRequest> GetSupportRequestByIdAsync(int id)
+        public async Task<SupportRequestDTO> GetSupportRequestByIdAsync(int id)
         {
-            return await _context.SupportRequests
-                .Include(sr => sr.Appointments)
-                .Include(sr => sr.RequiredSpareParts)
-                .Include(sr => sr.Quote)
-                .FirstOrDefaultAsync(sr => sr.SupportRequestId == id);
+            var supportRequest = await _context.SupportRequests
+                                                .Include(sr => sr.User) // Include the User data
+                                                .FirstOrDefaultAsync(sr => sr.SupportRequestId == id);
+
+            if (supportRequest == null)
+                return null;
+
+            return new SupportRequestDTO
+            {
+                SupportRequestId = supportRequest.SupportRequestId,
+                IssueType = supportRequest.IssueType,
+                Description = supportRequest.Description,
+                RequestDate = supportRequest.RequestDate,
+                UserId = supportRequest.UserId,
+                UserEmail = supportRequest.User.Email // Include the user's email
+            };
         }
 
-        public async Task<SupportRequest> CreateSupportRequestAsync(SupportRequest request)
+        public async Task<SupportRequestDTO> CreateSupportRequestAsync(SupportRequestDTO supportRequestDTO)
         {
-            _context.SupportRequests.Add(request);
+            var supportRequest = new SupportRequest
+            {
+                IssueType = supportRequestDTO.IssueType,
+                Description = supportRequestDTO.Description,
+                RequestDate = supportRequestDTO.RequestDate,
+                UserId = supportRequestDTO.UserId
+            };
+
+            _context.SupportRequests.Add(supportRequest);
             await _context.SaveChangesAsync();
-            return request;
+
+            supportRequestDTO.SupportRequestId = supportRequest.SupportRequestId;
+            return supportRequestDTO;
         }
 
-        public async Task<SupportRequest> UpdateSupportRequestAsync(SupportRequest request)
+        public async Task<SupportRequestDTO> UpdateSupportRequestAsync(SupportRequestDTO supportRequestDTO)
         {
-            _context.SupportRequests.Update(request);
+            var supportRequest = await _context.SupportRequests.FindAsync(supportRequestDTO.SupportRequestId);
+
+            if (supportRequest == null)
+                return null;
+
+            supportRequest.IssueType = supportRequestDTO.IssueType;
+            supportRequest.Description = supportRequestDTO.Description;
+            supportRequest.RequestDate = supportRequestDTO.RequestDate;
+            supportRequest.UserId = supportRequestDTO.UserId;
+
+            _context.SupportRequests.Update(supportRequest);
             await _context.SaveChangesAsync();
-            return request;
+
+            return supportRequestDTO;
         }
 
         public async Task<bool> DeleteSupportRequestAsync(int id)
         {
-            var request = await _context.SupportRequests.FindAsync(id);
-            if (request == null) return false;
+            var supportRequest = await _context.SupportRequests.FindAsync(id);
 
-            _context.SupportRequests.Remove(request);
+            if (supportRequest == null)
+                return false;
+
+            _context.SupportRequests.Remove(supportRequest);
             await _context.SaveChangesAsync();
+
             return true;
         }
     }

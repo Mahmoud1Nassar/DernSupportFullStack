@@ -1,51 +1,116 @@
 ﻿using DernSupportBackEnd.Data;
-using DernSupportBackEnd.Models;
+using DernSupportBackEnd.Models.DTO;
 using DernSupportBackEnd.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace DernSupportBackEnd.Repositories.Services
+public class QuoteService : IQuote
 {
-    public class QuoteService : IQuote
+    private readonly DernDbContext _context;
+
+    public QuoteService(DernDbContext context)
     {
-        private readonly DernDbContext _context;
+        _context = context;
+    }
 
-        public QuoteService(DernDbContext context)
+    public async Task<IEnumerable<QuoteDTO>> GetAllQuotesAsync()
+    {
+        var quotes = await _context.Quotes.ToListAsync();
+
+        return quotes.Select(q => new QuoteDTO
         {
-            _context = context;
+            QuoteId = q.QuoteId,
+            TotalCost = q.TotalCost,
+            Description = q.Description,
+            SupportRequestId = q.SupportRequestId
+        }).ToList();
+    }
+
+    public async Task<QuoteDTO> GetQuoteByIdAsync(int id)
+    {
+        var quote = await _context.Quotes.FindAsync(id);
+
+        if (quote == null)
+            return null;
+
+        return new QuoteDTO
+        {
+            QuoteId = quote.QuoteId,
+            TotalCost = quote.TotalCost,
+            Description = quote.Description,
+            SupportRequestId = quote.SupportRequestId
+        };
+    }
+
+    public async Task<QuoteDTO> CreateQuoteAsync(QuoteDTO quoteDTO)
+    {
+        // Fetch the support request (without fetching spare parts or recalculating costs)
+        var supportRequest = await _context.SupportRequests
+            .FirstOrDefaultAsync(sr => sr.SupportRequestId == quoteDTO.SupportRequestId);
+
+        if (supportRequest == null)
+        {
+            throw new Exception("Support request not found.");
         }
 
-        public async Task<IEnumerable<Quote>> GetAllQuotesAsync()
+        // Trust the totalCost calculated on the frontend and passed in quoteDTO
+        var quote = new Quote
         {
-            return await _context.Quotes.Include(q => q.SupportRequest).ToListAsync();
+            TotalCost = quoteDTO.TotalCost, // Use the total cost from the frontend
+            Description = quoteDTO.Description,
+            SupportRequestId = quoteDTO.SupportRequestId
+        };
+
+        _context.Quotes.Add(quote);
+        await _context.SaveChangesAsync();
+
+        quoteDTO.QuoteId = quote.QuoteId;
+        return quoteDTO;
+    }
+
+
+    public async Task<QuoteDTO> UpdateQuoteAsync(QuoteDTO quoteDTO)
+    {
+        var quote = await _context.Quotes.FindAsync(quoteDTO.QuoteId);
+
+        if (quote == null)
+            return null;
+
+        // Fetch the support request with related spare parts
+        var supportRequest = await _context.SupportRequests
+            .Include(sr => sr.SupportRequestSpareParts)
+            .ThenInclude(srsp => srsp.SparePart)
+            .FirstOrDefaultAsync(sr => sr.SupportRequestId == quoteDTO.SupportRequestId);
+
+        if (supportRequest == null)
+        {
+            throw new Exception("Support request not found.");
         }
 
-        public async Task<Quote> GetQuoteByIdAsync(int id)
-        {
-            return await _context.Quotes.Include(q => q.SupportRequest).FirstOrDefaultAsync(q => q.QuoteId == id);
-        }
+        // Recalculate total cost based on the updated spare parts used
+        decimal totalCost = supportRequest.SupportRequestSpareParts
+            .Sum(srsp => srsp.SparePart.Cost);
 
-        public async Task<Quote> CreateQuoteAsync(Quote quote)
-        {
-            _context.Quotes.Add(quote);
-            await _context.SaveChangesAsync();
-            return quote;
-        }
+        quote.TotalCost = totalCost;
+        quote.Description = quoteDTO.Description;
+        quote.SupportRequestId = quoteDTO.SupportRequestId;
 
-        public async Task<Quote> UpdateQuoteAsync(Quote quote)
-        {
-            _context.Quotes.Update(quote);
-            await _context.SaveChangesAsync();
-            return quote;
-        }
+        _context.Quotes.Update(quote);
+        await _context.SaveChangesAsync();
 
-        public async Task<bool> DeleteQuoteAsync(int id)
-        {
-            var quote = await _context.Quotes.FindAsync(id);
-            if (quote == null) return false;
+        quoteDTO.TotalCost = totalCost;
+        return quoteDTO;
+    }
 
-            _context.Quotes.Remove(quote);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+    public async Task<bool> DeleteQuoteAsync(int id)
+    {
+        var quote = await _context.Quotes.FindAsync(id);
+
+        if (quote == null)
+            return false;
+
+        _context.Quotes.Remove(quote);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

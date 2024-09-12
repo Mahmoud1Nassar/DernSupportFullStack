@@ -8,9 +8,9 @@ namespace DernSupportBackEnd.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly IAuth _authService;  // Use IAuth interface
 
-        public AuthController(AuthService authService)
+        public AuthController(IAuth authService)  // Inject the IAuth interface
         {
             _authService = authService;
         }

@@ -18,9 +18,49 @@ namespace DernSupportBackEnd.Data
         public DbSet<SparePart> SpareParts { get; set; }
         public DbSet<Quote> Quotes { get; set; }
 
+        // Add the DbSet for SupportRequestSparePart
+        public DbSet<SupportRequestSparePart> SupportRequestSpareParts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // This is important to call Identity configurations
+            base.OnModelCreating(modelBuilder); // Ensure Identity configurations
+
+            // Configure SupportRequest and User (Many-to-One)
+            modelBuilder.Entity<SupportRequest>()
+                .HasOne(sr => sr.User)
+                .WithMany(u => u.SupportRequests)
+                .HasForeignKey(sr => sr.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Quote and SupportRequest (Many-to-One)
+            modelBuilder.Entity<Quote>()
+                .HasOne(q => q.SupportRequest)
+                .WithMany(sr => sr.Quotes)
+                .HasForeignKey(q => q.SupportRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure the many-to-many relationship between SupportRequest and SparePart
+            modelBuilder.Entity<SupportRequestSparePart>()
+                .HasKey(srsp => new { srsp.SupportRequestId, srsp.SparePartId });  // Composite primary key
+
+            modelBuilder.Entity<SupportRequestSparePart>()
+                .HasOne(srsp => srsp.SupportRequest)
+                .WithMany(sr => sr.SupportRequestSpareParts)
+                .HasForeignKey(srsp => srsp.SupportRequestId);
+
+            modelBuilder.Entity<SupportRequestSparePart>()
+                .HasOne(srsp => srsp.SparePart)
+                .WithMany(sp => sp.SupportRequestSpareParts)
+                .HasForeignKey(srsp => srsp.SparePartId);
+
+            // Set precision for decimal properties
+            modelBuilder.Entity<Quote>()
+                .Property(q => q.TotalCost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SparePart>()
+                .Property(sp => sp.Cost)
+                .HasPrecision(18, 2);
 
             // Seed Identity Roles
             modelBuilder.Entity<IdentityRole>().HasData(
@@ -45,8 +85,7 @@ namespace DernSupportBackEnd.Data
             );
 
             // Seed Admin User
-            var adminId = Guid.NewGuid().ToString();
-            var adminRoleId = "1"; // Ensure this matches the ID in the role seeding above
+            var adminId = "1";
             var passwordHasher = new PasswordHasher<ApplicationUser>();
 
             var adminUser = new ApplicationUser
@@ -61,7 +100,7 @@ namespace DernSupportBackEnd.Data
                 SecurityStamp = Guid.NewGuid().ToString("D")
             };
 
-            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@1235678");
+            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@123");
 
             modelBuilder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -69,41 +108,37 @@ namespace DernSupportBackEnd.Data
             modelBuilder.Entity<IdentityUserRole<string>>().HasData(
                 new IdentityUserRole<string>
                 {
-                    RoleId = adminRoleId,
+                    RoleId = "1",
                     UserId = adminId
                 }
             );
 
-            // Fluent API Configurations for relationships and complex cases
+            // Seed Technician User
+            var technicianId = "2";
+            var technicianUser = new ApplicationUser
+            {
+                Id = technicianId,
+                UserName = "technician@example.com",
+                NormalizedUserName = "TECHNICIAN@EXAMPLE.COM",
+                Email = "technician@example.com",
+                NormalizedEmail = "TECHNICIAN@EXAMPLE.COM",
+                EmailConfirmed = true,
+                FullName = "Technician User",
+                SecurityStamp = Guid.NewGuid().ToString("D")
+            };
 
-            // One-to-Many: SupportRequest has many Appointments
-            modelBuilder.Entity<SupportRequest>()
-                .HasMany(sr => sr.Appointments)
-                .WithOne(a => a.SupportRequest)
-                .HasForeignKey(a => a.SupportRequestId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent multiple cascade paths
+            technicianUser.PasswordHash = passwordHasher.HashPassword(technicianUser, "Technician@123");
 
-            // Many-to-Many: SupportRequest <-> SparePart
-            modelBuilder.Entity<SupportRequest>()
-                .HasMany(sr => sr.RequiredSpareParts)
-                .WithMany(sp => sp.SupportRequests)
-                .UsingEntity(j => j.ToTable("SupportRequestSpareParts"));
+            modelBuilder.Entity<ApplicationUser>().HasData(technicianUser);
 
-            // One-to-One: SupportRequest has one Quote
-            modelBuilder.Entity<SupportRequest>()
-                .HasOne(sr => sr.Quote)
-                .WithOne(q => q.SupportRequest)
-                .HasForeignKey<Quote>(q => q.SupportRequestId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade deletion is appropriate here
-
-            // Specify precision for decimal properties
-            modelBuilder.Entity<Quote>()
-                .Property(q => q.TotalCost)
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<SparePart>()
-                .Property(sp => sp.Cost)
-                .HasPrecision(18, 2);
+            // Assign Technician User to Role
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(
+                new IdentityUserRole<string>
+                {
+                    RoleId = "3",
+                    UserId = technicianId
+                }
+            );
         }
     }
 }
